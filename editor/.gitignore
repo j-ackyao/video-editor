@@ -8,6 +8,7 @@ obj/
 .vs/
 .idea/
 
-## Bundled FFmpeg binaries (drop them in src/VideoTrim.App/Assets/ffmpeg/, do not commit)
-src/VideoTrim.App/Assets/ffmpeg/ffmpeg.exe
-src/VideoTrim.App/Assets/ffmpeg/ffprobe.exe
+## Bundled FFmpeg binaries (drop them in src/VideoTrim.App/Assets/ffmpeg/, do not commit).
+## Keep the folder's README but ignore the large executables/DLLs.
+src/VideoTrim.App/Assets/ffmpeg/*
+!src/VideoTrim.App/Assets/ffmpeg/README.md

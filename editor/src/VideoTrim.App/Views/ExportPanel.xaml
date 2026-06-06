@@ -11,7 +11,6 @@
 
     <UserControl.Resources>
         <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
-        <conv:EnumToBoolConverter x:Key="EnumToBool" />
         <conv:InverseBoolConverter x:Key="InverseBool" />
     </UserControl.Resources>
 
@@ -31,11 +30,11 @@
 
         <TextBlock Text="Quality mode" Style="{ThemeResource CaptionTextBlockStyle}" Margin="0,6,0,0" />
         <RadioButton Content="Quality (CRF)"
-                     IsChecked="{Binding Mode, Mode=TwoWay, Converter={StaticResource EnumToBool}, ConverterParameter=Quality}" />
+                     IsChecked="{Binding IsQualityMode, Mode=TwoWay}" />
         <RadioButton Content="Target bitrate"
-                     IsChecked="{Binding Mode, Mode=TwoWay, Converter={StaticResource EnumToBool}, ConverterParameter=Bitrate}" />
+                     IsChecked="{Binding IsBitrateMode, Mode=TwoWay}" />
         <RadioButton Content="Target size"
-                     IsChecked="{Binding Mode, Mode=TwoWay, Converter={StaticResource EnumToBool}, ConverterParameter=TargetSize}" />
+                     IsChecked="{Binding IsTargetSizeMode, Mode=TwoWay}" />
 
         <!-- Quality slider -->
         <StackPanel Visibility="{Binding IsQualityMode, Converter={StaticResource BoolToVis}}" Spacing="2">

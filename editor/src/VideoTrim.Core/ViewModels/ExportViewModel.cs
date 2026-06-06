@@ -72,9 +72,27 @@ public sealed partial class ExportViewModel : ObservableObject
 
     public bool IsGif => Format == OutputFormat.Gif;
     public bool IsVideo => Format != OutputFormat.Gif;
-    public bool IsQualityMode => Mode == BitrateMode.Quality;
-    public bool IsBitrateMode => Mode == BitrateMode.Bitrate;
-    public bool IsTargetSizeMode => Mode == BitrateMode.TargetSize;
+
+    // Settable so RadioButton.IsChecked can bind TwoWay directly (no enum converter needed).
+    // Setting one to true selects that mode; the false push-back from the radio group is ignored.
+    public bool IsQualityMode
+    {
+        get => Mode == BitrateMode.Quality;
+        set { if (value) Mode = BitrateMode.Quality; }
+    }
+
+    public bool IsBitrateMode
+    {
+        get => Mode == BitrateMode.Bitrate;
+        set { if (value) Mode = BitrateMode.Bitrate; }
+    }
+
+    public bool IsTargetSizeMode
+    {
+        get => Mode == BitrateMode.TargetSize;
+        set { if (value) Mode = BitrateMode.TargetSize; }
+    }
+
     public bool CanEditAudioBitrate => IncludeAudio && SourceHasAudio;
 
     /// <summary>Export should be blocked only when target-size mode is selected but infeasible (§7.4).</summary>

@@ -44,18 +44,3 @@ public sealed class InfoSeverityConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, string language)
         => throw new NotSupportedException();
 }
-
-/// <summary>Binds an enum value to a RadioButton/ToggleButton via its name in ConverterParameter.</summary>
-public sealed class EnumToBoolConverter : IValueConverter
-{
-    public object Convert(object value, Type targetType, object parameter, string language)
-        => value is not null && parameter is string name &&
-           value.ToString()!.Equals(name, StringComparison.OrdinalIgnoreCase);
-
-    public object ConvertBack(object value, Type targetType, object parameter, string language)
-    {
-        if (value is bool b && b && parameter is string name)
-            return Enum.Parse(targetType, name);
-        return DependencyProperty.UnsetValue;
-    }
-}
