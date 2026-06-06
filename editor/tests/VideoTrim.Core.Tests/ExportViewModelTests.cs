@@ -75,4 +75,46 @@ public sealed class ExportViewModelTests
         Assert.True(vm.IsTargetSizeFeasible);
         Assert.False(vm.BlocksExport);
     }
+
+    [Fact]
+    public void CustomResolution_RevealsAndAppliesEvenHeight()
+    {
+        var vm = Create();
+        var custom = vm.ResolutionOptions.Single(r => r.IsCustom);
+
+        Assert.False(vm.IsCustomResolution);
+        vm.SelectedResolution = custom;
+        Assert.True(vm.IsCustomResolution);
+
+        vm.CustomHeight = 999;                 // odd → normalized to even
+        Assert.Equal(998, vm.ToSettings().TargetHeight);
+    }
+
+    [Fact]
+    public void CustomFps_RevealsAndApplies()
+    {
+        var vm = Create();
+        var custom = vm.FpsOptions.Single(f => f.IsCustom);
+
+        Assert.False(vm.IsCustomFps);
+        vm.SelectedFps = custom;
+        Assert.True(vm.IsCustomFps);
+
+        vm.CustomFps = 144;
+        Assert.Equal(144, vm.ToSettings().TargetFps);
+    }
+
+    [Fact]
+    public void SameAsSource_IsNotTreatedAsCustom()
+    {
+        var vm = Create();
+        vm.SetSource(TestData.Media(fps: 240, height: 2160));
+        vm.SelectedResolution = vm.ResolutionOptions[0]; // "Same as source"
+        vm.SelectedFps = vm.FpsOptions[0];
+
+        Assert.False(vm.IsCustomResolution);
+        Assert.False(vm.IsCustomFps);
+        Assert.Null(vm.ToSettings().TargetHeight);
+        Assert.Null(vm.ToSettings().TargetFps);
+    }
 }

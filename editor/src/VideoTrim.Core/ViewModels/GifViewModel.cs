@@ -29,8 +29,22 @@ public sealed partial class GifViewModel : ObservableObject
 
     public IReadOnlyList<SizeUnit> SizeUnitOptions { get; } = new[] { SizeUnit.MiB, SizeUnit.KiB };
 
-    [ObservableProperty] private ResolutionOption? _selectedResolution;
-    [ObservableProperty] private FpsOption? _selectedFps;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCustomResolution))]
+    private ResolutionOption? _selectedResolution;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCustomFps))]
+    private FpsOption? _selectedFps;
+
+    /// <summary>Free-form height used when the "Custom…" resolution option is selected.</summary>
+    [ObservableProperty] private int _customHeight = 480;
+
+    /// <summary>Free-form frame rate used when the "Custom…" fps option is selected.</summary>
+    [ObservableProperty] private double _customFps = 15;
+
+    public bool IsCustomResolution => SelectedResolution?.IsCustom ?? false;
+    public bool IsCustomFps => SelectedFps?.IsCustom ?? false;
 
     /// <summary>2..256 — primary compression knob (§7.6).</summary>
     [ObservableProperty] private int _maxColors = 256;
@@ -58,12 +72,23 @@ public sealed partial class GifViewModel : ObservableObject
 
     public GifSettings ToSettings() => new()
     {
-        TargetHeight = SelectedResolution?.Height,
-        TargetFps = SelectedFps?.Fps ?? 15,
+        TargetHeight = ResolveTargetHeight(),
+        TargetFps = ResolveTargetFps(),
         MaxColors = Math.Clamp(MaxColors, 2, 256),
         Dither = Dither,
         TargetSizeBytes = UseTargetSize ? TargetSizeBytes : null,
     };
+
+    private int? ResolveTargetHeight() => SelectedResolution?.IsCustom == true
+        ? ExportOptionCatalog.NormalizeHeight(CustomHeight)
+        : SelectedResolution?.Height;
+
+    private double ResolveTargetFps()
+    {
+        if (SelectedFps?.IsCustom == true)
+            return CustomFps > 0 ? CustomFps : 15;
+        return SelectedFps?.Fps ?? 15;
+    }
 
     private static void ReplaceOptions<T>(ObservableCollection<T> target, IReadOnlyList<T> items)
     {

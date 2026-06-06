@@ -130,3 +130,35 @@ correctly (see `README.md`). The Core library and its tests build and pass with 
 **Decision.** `ExportPanel` and `GifPanel` are separate `UserControl`s both hosted in `MainPage`,
 shown/hidden by `Export.IsVideo` / `Export.IsGif`, so one region morphs rather than opening a new
 window.
+
+---
+
+# Post-implementation changes (UX feedback)
+
+## 19. Fixed: both export panels rendering at once (binding bug)
+**Issue (user-reported).** After the audio section the UI showed a second, redundant set of
+resolution/fps/target-size controls. Root cause: in `MainPage.xaml` each panel set
+`DataContext="{Binding Export}"` *and* `Visibility="{Binding Export.IsVideo}"` on the same element;
+once the DataContext was rebased, the visibility path resolved against the wrong scope
+(`Export.Export.IsVideo`), failed silently, and defaulted to **Visible** — so both the video and GIF
+panels were always shown.
+**Decision.** Wrap each panel in a `Grid` that keeps the page's `MainViewModel` DataContext and
+carries the `Visibility` binding; the inner panel alone rebases its DataContext. Now exactly one
+panel shows per format, removing the duplicated controls and the confusing second "target size".
+
+## 20. Custom resolution and fps entry
+**Issue (user request).** Keep the preset dropdowns but also allow typing an arbitrary
+resolution/fps.
+**Decision.** Added a "Custom…" sentinel entry to the resolution and fps dropdowns
+(`ResolutionOption.IsCustom` / `FpsOption.IsCustom`). Selecting it reveals a `NumberBox`
+(`CustomHeight` / `CustomFps`). Custom height is normalized to an even, positive value
+(`ExportOptionCatalog.NormalizeHeight`) because yuv420p requires even dimensions. Applied to both the
+video and GIF panels.
+
+## 21. High-refresh fps options (120, 144)
+**Issue (user request).** Offer 120 and 144 fps.
+**Decision.** Added 144 and 120 to the standard video-fps list. They follow the existing §12 rule —
+only presets ≤ source fps are listed, so they appear for high-fps sources (e.g. 120/144 fps capture)
+rather than fabricating frames by default. The new "Custom…" fps field (decision 20) is the explicit
+escape hatch for any other value, including deliberate up-sampling.
+

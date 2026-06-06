@@ -95,10 +95,14 @@
                                   ItemsSource="{Binding Export.FormatOptions}"
                                   SelectedItem="{Binding Export.Format, Mode=TwoWay}" />
 
-                        <views:ExportPanel DataContext="{Binding Export}"
-                                           Visibility="{Binding Export.IsVideo, Converter={StaticResource BoolToVis}}" />
-                        <views:GifPanel DataContext="{Binding Gif}"
-                                        Visibility="{Binding Export.IsGif, Converter={StaticResource BoolToVis}}" />
+                        <!-- Visibility lives on the wrapper (page DataContext) so it isn't
+                             evaluated against each panel's rebased DataContext. -->
+                        <Grid Visibility="{Binding Export.IsVideo, Converter={StaticResource BoolToVis}}">
+                            <views:ExportPanel DataContext="{Binding Export}" />
+                        </Grid>
+                        <Grid Visibility="{Binding Export.IsGif, Converter={StaticResource BoolToVis}}">
+                            <views:GifPanel DataContext="{Binding Gif}" />
+                        </Grid>
 
                         <Button Content="Export" Style="{ThemeResource AccentButtonStyle}"
                                 HorizontalAlignment="Stretch" Margin="0,8,0,0"

@@ -40,8 +40,19 @@ public sealed partial class ExportViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(IsVideo))]
     private OutputFormat _format = OutputFormat.Mp4;
 
-    [ObservableProperty] private ResolutionOption? _selectedResolution;
-    [ObservableProperty] private FpsOption? _selectedFps;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCustomResolution))]
+    private ResolutionOption? _selectedResolution;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsCustomFps))]
+    private FpsOption? _selectedFps;
+
+    /// <summary>Free-form height used when the "Custom…" resolution option is selected.</summary>
+    [ObservableProperty] private int _customHeight = 1080;
+
+    /// <summary>Free-form frame rate used when the "Custom…" fps option is selected.</summary>
+    [ObservableProperty] private double _customFps = 60;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsQualityMode))]
@@ -72,6 +83,12 @@ public sealed partial class ExportViewModel : ObservableObject
 
     public bool IsGif => Format == OutputFormat.Gif;
     public bool IsVideo => Format != OutputFormat.Gif;
+
+    /// <summary>True when the "Custom…" resolution option is selected (reveals the height input).</summary>
+    public bool IsCustomResolution => SelectedResolution?.IsCustom ?? false;
+
+    /// <summary>True when the "Custom…" fps option is selected (reveals the fps input).</summary>
+    public bool IsCustomFps => SelectedFps?.IsCustom ?? false;
 
     // Settable so RadioButton.IsChecked can bind TwoWay directly (no enum converter needed).
     // Setting one to true selects that mode; the false push-back from the radio group is ignored.
@@ -125,8 +142,8 @@ public sealed partial class ExportViewModel : ObservableObject
     public ExportSettings ToSettings() => new()
     {
         Format = Format,
-        TargetHeight = SelectedResolution?.Height,
-        TargetFps = SelectedFps?.Fps,
+        TargetHeight = ResolveTargetHeight(),
+        TargetFps = ResolveTargetFps(),
         Mode = Mode,
         QualityCrf = QualityCrf,
         VideoBitrateKbps = VideoBitrateKbps,
@@ -137,6 +154,17 @@ public sealed partial class ExportViewModel : ObservableObject
             AudioBitrateKbps = AudioBitrateKbps,
         },
     };
+
+    private int? ResolveTargetHeight() => SelectedResolution?.IsCustom == true
+        ? ExportOptionCatalog.NormalizeHeight(CustomHeight)
+        : SelectedResolution?.Height;
+
+    private double? ResolveTargetFps()
+    {
+        if (SelectedFps?.IsCustom == true)
+            return CustomFps > 0 ? CustomFps : null;
+        return SelectedFps?.Fps;
+    }
 
     public void RecomputeFeasibility()
     {

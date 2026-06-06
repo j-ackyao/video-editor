@@ -9,18 +9,30 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <UserControl.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
+    </UserControl.Resources>
+
     <StackPanel Spacing="10">
         <TextBlock Text="Resolution" Style="{ThemeResource CaptionTextBlockStyle}" />
         <ComboBox HorizontalAlignment="Stretch"
                   ItemsSource="{Binding ResolutionOptions}"
                   SelectedItem="{Binding SelectedResolution, Mode=TwoWay}"
                   DisplayMemberPath="Label" />
+        <controls:NumberBox Header="Custom height (px)"
+                            Value="{Binding CustomHeight, Mode=TwoWay}"
+                            SpinButtonPlacementMode="Compact" Minimum="2" Maximum="4320"
+                            Visibility="{Binding IsCustomResolution, Converter={StaticResource BoolToVis}}" />
 
         <TextBlock Text="Frame rate" Style="{ThemeResource CaptionTextBlockStyle}" />
         <ComboBox HorizontalAlignment="Stretch"
                   ItemsSource="{Binding FpsOptions}"
                   SelectedItem="{Binding SelectedFps, Mode=TwoWay}"
                   DisplayMemberPath="Label" />
+        <controls:NumberBox Header="Custom fps"
+                            Value="{Binding CustomFps, Mode=TwoWay}"
+                            SpinButtonPlacementMode="Compact" Minimum="1" Maximum="60"
+                            Visibility="{Binding IsCustomFps, Converter={StaticResource BoolToVis}}" />
 
         <TextBlock Text="More compression  ⟷  Better quality (colors)" Style="{ThemeResource CaptionTextBlockStyle}" Margin="0,6,0,0" />
         <Slider Minimum="2" Maximum="256" StepFrequency="1" Value="{Binding MaxColors, Mode=TwoWay}" />
