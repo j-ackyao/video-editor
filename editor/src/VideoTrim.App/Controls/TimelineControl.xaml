@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="VideoTrim.App.Controls.TimelineControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <Canvas x:Name="TrackCanvas"
+                Height="56"
+                Background="Transparent"
+                SizeChanged="OnCanvasSizeChanged"
+                PointerPressed="OnTrackPointerPressed"
+                PointerMoved="OnCanvasPointerMoved"
+                PointerReleased="OnCanvasPointerReleased"
+                PointerCanceled="OnCanvasPointerReleased"
+                PointerCaptureLost="OnCanvasPointerReleased">
+
+            <!-- Track background -->
+            <Border x:Name="TrackBackground"
+                    Canvas.Top="12" Height="32"
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="4" />
+
+            <!-- Dimmed (excluded) regions -->
+            <Rectangle x:Name="DimLeft" Canvas.Top="12" Height="32" Fill="#99000000" />
+            <Rectangle x:Name="DimRight" Canvas.Top="12" Height="32" Fill="#99000000" />
+
+            <!-- Kept range highlight -->
+            <Border x:Name="KeptRange"
+                    Canvas.Top="12" Height="32"
+                    Background="#3300A2FF"
+                    BorderBrush="{ThemeResource AccentFillColorDefaultBrush}"
+                    BorderThickness="0,2,0,2" />
+
+            <!-- Playhead -->
+            <Rectangle x:Name="PlayheadLine" Canvas.Top="6" Width="2" Height="44"
+                       Fill="{ThemeResource TextFillColorPrimaryBrush}" />
+
+            <!-- Trim handles -->
+            <Border x:Name="StartHandle" Canvas.Top="4" Width="14" Height="48"
+                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                    CornerRadius="3"
+                    PointerPressed="OnHandlePointerPressed">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Drag to set the start of the kept range" />
+                </ToolTipService.ToolTip>
+            </Border>
+            <Border x:Name="EndHandle" Canvas.Top="4" Width="14" Height="48"
+                    Background="{ThemeResource AccentFillColorDefaultBrush}"
+                    CornerRadius="3"
+                    PointerPressed="OnHandlePointerPressed">
+                <ToolTipService.ToolTip>
+                    <ToolTip Content="Drag to set the end of the kept range" />
+                </ToolTipService.ToolTip>
+            </Border>
+        </Canvas>
+    </Grid>
+</UserControl>

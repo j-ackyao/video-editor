@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="VideoTrim.App.Views.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:VideoTrim.App.Controls"
+    xmlns:views="using:VideoTrim.App.Views"
+    xmlns:conv="using:VideoTrim.App.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    AllowDrop="True"
+    DragOver="OnDragOver"
+    Drop="OnDrop">
+
+    <UserControl.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <conv:InfoSeverityConverter x:Key="InfoSeverity" />
+    </UserControl.Resources>
+
+    <Grid Padding="12" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- Top bar -->
+        <Grid Grid.Row="0" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="Open Video" Command="{Binding OpenVideoCommand}" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10"
+                        VerticalAlignment="Center" HorizontalAlignment="Right">
+                <TextBlock Text="{Binding FileName}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding SourceSummary}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Main content: preview + timeline (left), export options (right) -->
+        <Grid Grid.Row="1" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="320" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Left: preview + transport + timeline -->
+            <Grid Grid.Column="0" RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Background="Black" CornerRadius="6">
+                    <MediaPlayerElement x:Name="Player" AreTransportControlsEnabled="False"
+                                        Stretch="Uniform" />
+                </Border>
+
+                <!-- Transport row -->
+                <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <Button Content="{Binding PlayPauseLabel}" Command="{Binding TogglePlayPauseCommand}"
+                            IsEnabled="{Binding IsMediaLoaded}" MinWidth="80" />
+                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding PlayheadText}" />
+                        <TextBlock Text="/" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                        <TextBlock Text="{Binding DurationText}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding SelectionText}" Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                               VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Unified seek + trim timeline -->
+                <controls:TimelineControl Grid.Row="2"
+                                          x:Name="Timeline"
+                                          Duration="{Binding Duration}"
+                                          TrimStart="{Binding TrimStart, Mode=TwoWay}"
+                                          TrimEnd="{Binding TrimEnd, Mode=TwoWay}"
+                                          PlayheadPosition="{Binding PlayheadPosition, Mode=TwoWay}"
+                                          IsEnabled="{Binding IsMediaLoaded}" />
+            </Grid>
+
+            <!-- Right: export panel -->
+            <Border Grid.Column="1" Background="{ThemeResource LayerFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="1"
+                    CornerRadius="6" Padding="14">
+                <ScrollViewer>
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="EXPORT" Style="{ThemeResource SubtitleTextBlockStyle}" />
+
+                        <ComboBox HorizontalAlignment="Stretch" Header="Format"
+                                  ItemsSource="{Binding Export.FormatOptions}"
+                                  SelectedItem="{Binding Export.Format, Mode=TwoWay}" />
+
+                        <views:ExportPanel DataContext="{Binding Export}"
+                                           Visibility="{Binding Export.IsVideo, Converter={StaticResource BoolToVis}}" />
+                        <views:GifPanel DataContext="{Binding Gif}"
+                                        Visibility="{Binding Export.IsGif, Converter={StaticResource BoolToVis}}" />
+
+                        <Button Content="Export" Style="{ThemeResource AccentButtonStyle}"
+                                HorizontalAlignment="Stretch" Margin="0,8,0,0"
+                                Command="{Binding ExportCommand}" />
+
+                        <StackPanel Spacing="6" Visibility="{Binding IsExporting, Converter={StaticResource BoolToVis}}">
+                            <ProgressBar Maximum="100" Value="{Binding ExportProgress}" />
+                            <Grid>
+                                <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" />
+                                <Button Content="Cancel" HorizontalAlignment="Right"
+                                        Command="{Binding CancelExportCommand}" />
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- Bottom: status / errors -->
+        <InfoBar Grid.Row="2"
+                 IsOpen="{Binding IsInfoOpen, Mode=TwoWay}"
+                 Message="{Binding InfoMessage}"
+                 Severity="{Binding InfoSeverity, Converter={StaticResource InfoSeverity}}" />
+    </Grid>
+</UserControl>

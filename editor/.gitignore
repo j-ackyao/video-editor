@@ -1,0 +1,13 @@
+## .NET / build outputs
+bin/
+obj/
+*.user
+*.binlog
+
+## Rider/VS
+.vs/
+.idea/
+
+## Bundled FFmpeg binaries (drop them in src/VideoTrim.App/Assets/ffmpeg/, do not commit)
+src/VideoTrim.App/Assets/ffmpeg/ffmpeg.exe
+src/VideoTrim.App/Assets/ffmpeg/ffprobe.exe

@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="VideoTrim.App.Views.GifPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:conv="using:VideoTrim.App.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <StackPanel Spacing="10">
+        <TextBlock Text="Resolution" Style="{ThemeResource CaptionTextBlockStyle}" />
+        <ComboBox HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding ResolutionOptions}"
+                  SelectedItem="{Binding SelectedResolution, Mode=TwoWay}"
+                  DisplayMemberPath="Label" />
+
+        <TextBlock Text="Frame rate" Style="{ThemeResource CaptionTextBlockStyle}" />
+        <ComboBox HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding FpsOptions}"
+                  SelectedItem="{Binding SelectedFps, Mode=TwoWay}"
+                  DisplayMemberPath="Label" />
+
+        <TextBlock Text="More compression  ⟷  Better quality (colors)" Style="{ThemeResource CaptionTextBlockStyle}" Margin="0,6,0,0" />
+        <Slider Minimum="2" Maximum="256" StepFrequency="1" Value="{Binding MaxColors, Mode=TwoWay}" />
+
+        <ComboBox HorizontalAlignment="Stretch"
+                  Header="Dithering"
+                  ItemsSource="{Binding DitherOptions}"
+                  SelectedItem="{Binding Dither, Mode=TwoWay}" />
+
+        <CheckBox Content="Limit to a target size"
+                  IsChecked="{Binding UseTargetSize, Mode=TwoWay}"
+                  Margin="0,6,0,0" />
+        <Grid ColumnSpacing="6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <controls:NumberBox Grid.Column="0"
+                                Value="{Binding TargetSizeValue, Mode=TwoWay}"
+                                SpinButtonPlacementMode="Compact" Minimum="0.01"
+                                IsEnabled="{Binding CanEditTargetSize}" />
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding SizeUnitOptions}"
+                      SelectedItem="{Binding TargetSizeUnit, Mode=TwoWay}"
+                      IsEnabled="{Binding CanEditTargetSize}" />
+        </Grid>
+    </StackPanel>
+</UserControl>

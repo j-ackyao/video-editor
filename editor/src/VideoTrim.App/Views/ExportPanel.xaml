@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="VideoTrim.App.Views.ExportPanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:Microsoft.UI.Xaml.Controls"
+    xmlns:conv="using:VideoTrim.App.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <conv:EnumToBoolConverter x:Key="EnumToBool" />
+        <conv:InverseBoolConverter x:Key="InverseBool" />
+    </UserControl.Resources>
+
+    <StackPanel Spacing="10">
+
+        <TextBlock Text="Resolution" Style="{ThemeResource CaptionTextBlockStyle}" />
+        <ComboBox HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding ResolutionOptions}"
+                  SelectedItem="{Binding SelectedResolution, Mode=TwoWay}"
+                  DisplayMemberPath="Label" />
+
+        <TextBlock Text="Frame rate" Style="{ThemeResource CaptionTextBlockStyle}" />
+        <ComboBox HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding FpsOptions}"
+                  SelectedItem="{Binding SelectedFps, Mode=TwoWay}"
+                  DisplayMemberPath="Label" />
+
+        <TextBlock Text="Quality mode" Style="{ThemeResource CaptionTextBlockStyle}" Margin="0,6,0,0" />
+        <RadioButton Content="Quality (CRF)"
+                     IsChecked="{Binding Mode, Mode=TwoWay, Converter={StaticResource EnumToBool}, ConverterParameter=Quality}" />
+        <RadioButton Content="Target bitrate"
+                     IsChecked="{Binding Mode, Mode=TwoWay, Converter={StaticResource EnumToBool}, ConverterParameter=Bitrate}" />
+        <RadioButton Content="Target size"
+                     IsChecked="{Binding Mode, Mode=TwoWay, Converter={StaticResource EnumToBool}, ConverterParameter=TargetSize}" />
+
+        <!-- Quality slider -->
+        <StackPanel Visibility="{Binding IsQualityMode, Converter={StaticResource BoolToVis}}" Spacing="2">
+            <TextBlock Text="Smaller  ⟷  Better quality" Style="{ThemeResource CaptionTextBlockStyle}" />
+            <Slider Minimum="0" Maximum="51" Value="{Binding QualityCrf, Mode=TwoWay}" />
+        </StackPanel>
+
+        <!-- Bitrate -->
+        <StackPanel Visibility="{Binding IsBitrateMode, Converter={StaticResource BoolToVis}}" Spacing="2">
+            <TextBlock Text="Video bitrate (kbps)" Style="{ThemeResource CaptionTextBlockStyle}" />
+            <controls:NumberBox Value="{Binding VideoBitrateKbps, Mode=TwoWay}"
+                                SpinButtonPlacementMode="Compact" Minimum="100" />
+        </StackPanel>
+
+        <!-- Target size -->
+        <StackPanel Visibility="{Binding IsTargetSizeMode, Converter={StaticResource BoolToVis}}" Spacing="6">
+            <TextBlock Text="Target size" Style="{ThemeResource CaptionTextBlockStyle}" />
+            <Grid ColumnSpacing="6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <controls:NumberBox Grid.Column="0"
+                                    Value="{Binding TargetSizeValue, Mode=TwoWay}"
+                                    SpinButtonPlacementMode="Compact" Minimum="0.01" />
+                <ComboBox Grid.Column="1"
+                          ItemsSource="{Binding SizeUnitOptions}"
+                          SelectedItem="{Binding TargetSizeUnit, Mode=TwoWay}" />
+            </Grid>
+            <InfoBar IsOpen="{Binding IsTargetSizeFeasible, Converter={StaticResource InverseBool}}"
+                     Severity="Warning"
+                     IsClosable="False"
+                     Message="{Binding FeasibilityMessage}" />
+        </StackPanel>
+
+        <!-- Audio -->
+        <TextBlock Text="Audio" Style="{ThemeResource CaptionTextBlockStyle}" Margin="0,6,0,0" />
+        <CheckBox Content="Include audio"
+                  IsChecked="{Binding IncludeAudio, Mode=TwoWay}"
+                  IsEnabled="{Binding SourceHasAudio}" />
+        <ComboBox HorizontalAlignment="Stretch"
+                  Header="Audio bitrate (kbps)"
+                  ItemsSource="{Binding AudioBitrateOptions}"
+                  SelectedItem="{Binding AudioBitrateKbps, Mode=TwoWay}"
+                  IsEnabled="{Binding CanEditAudioBitrate}" />
+    </StackPanel>
+</UserControl>

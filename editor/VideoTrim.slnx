@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/VideoTrim.App/VideoTrim.App.csproj">
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="src/VideoTrim.Core/VideoTrim.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/VideoTrim.Core.Tests/VideoTrim.Core.Tests.csproj" />
+  </Folder>
+</Solution>
