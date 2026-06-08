@@ -16,25 +16,16 @@
 
     <StackPanel Spacing="10">
 
-        <TextBlock Text="Resolution" Style="{ThemeResource CaptionTextBlockStyle}" />
-        <ComboBox HorizontalAlignment="Stretch"
-                  ItemsSource="{Binding ResolutionOptions}"
-                  SelectedItem="{Binding SelectedResolution, Mode=TwoWay}"
-                  DisplayMemberPath="Label" />
-        <controls:NumberBox Header="Custom height (px)"
-                            Value="{Binding CustomHeight, Mode=TwoWay}"
-                            SpinButtonPlacementMode="Compact" Minimum="2" Maximum="4320"
-                            Visibility="{Binding IsCustomResolution, Converter={StaticResource BoolToVis}}" />
+        <!-- Editable combos: pick a preset or type your own value. -->
+        <ComboBox Header="Resolution (height, px)" IsEditable="True"
+                  HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding HeightField.Options}"
+                  Text="{Binding HeightField.Text, Mode=TwoWay}" />
 
-        <TextBlock Text="Frame rate" Style="{ThemeResource CaptionTextBlockStyle}" />
-        <ComboBox HorizontalAlignment="Stretch"
-                  ItemsSource="{Binding FpsOptions}"
-                  SelectedItem="{Binding SelectedFps, Mode=TwoWay}"
-                  DisplayMemberPath="Label" />
-        <controls:NumberBox Header="Custom fps"
-                            Value="{Binding CustomFps, Mode=TwoWay}"
-                            SpinButtonPlacementMode="Compact" Minimum="1" Maximum="240"
-                            Visibility="{Binding IsCustomFps, Converter={StaticResource BoolToVis}}" />
+        <ComboBox Header="Frame rate (fps)" IsEditable="True"
+                  HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding FpsField.Options}"
+                  Text="{Binding FpsField.Text, Mode=TwoWay}" />
 
         <TextBlock Text="Quality mode" Style="{ThemeResource CaptionTextBlockStyle}" Margin="0,6,0,0" />
         <RadioButton Content="Quality (CRF)"
@@ -46,32 +37,23 @@
 
         <!-- Quality slider -->
         <StackPanel Visibility="{Binding IsQualityMode, Converter={StaticResource BoolToVis}}" Spacing="2">
-            <TextBlock Text="Smaller  ⟷  Better quality" Style="{ThemeResource CaptionTextBlockStyle}" />
+            <TextBlock Text="Better  ⟷  Smaller" Style="{ThemeResource CaptionTextBlockStyle}" />
             <Slider Minimum="0" Maximum="51" Value="{Binding QualityCrf, Mode=TwoWay}" />
         </StackPanel>
 
         <!-- Bitrate -->
-        <StackPanel Visibility="{Binding IsBitrateMode, Converter={StaticResource BoolToVis}}" Spacing="2">
-            <TextBlock Text="Video bitrate (kbps)" Style="{ThemeResource CaptionTextBlockStyle}" />
-            <controls:NumberBox Value="{Binding VideoBitrateKbps, Mode=TwoWay}"
-                                SpinButtonPlacementMode="Compact" Minimum="100" />
-        </StackPanel>
+        <ComboBox Header="Video bitrate (kbps)" IsEditable="True"
+                  HorizontalAlignment="Stretch"
+                  Visibility="{Binding IsBitrateMode, Converter={StaticResource BoolToVis}}"
+                  ItemsSource="{Binding BitrateField.Options}"
+                  Text="{Binding BitrateField.Text, Mode=TwoWay}" />
 
         <!-- Target size -->
         <StackPanel Visibility="{Binding IsTargetSizeMode, Converter={StaticResource BoolToVis}}" Spacing="6">
-            <TextBlock Text="Target size" Style="{ThemeResource CaptionTextBlockStyle}" />
-            <Grid ColumnSpacing="6">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <controls:NumberBox Grid.Column="0"
-                                    Value="{Binding TargetSizeValue, Mode=TwoWay}"
-                                    SpinButtonPlacementMode="Compact" Minimum="0.01" />
-                <ComboBox Grid.Column="1"
-                          ItemsSource="{Binding SizeUnitOptions}"
-                          SelectedItem="{Binding TargetSizeUnit, Mode=TwoWay}" />
-            </Grid>
+            <ComboBox Header="Target size" IsEditable="True"
+                      HorizontalAlignment="Stretch"
+                      ItemsSource="{Binding TargetSizeField.Options}"
+                      Text="{Binding TargetSizeField.Text, Mode=TwoWay}" />
             <InfoBar IsOpen="{Binding IsTargetSizeFeasible, Converter={StaticResource InverseBool}}"
                      Severity="Warning"
                      IsClosable="False"
@@ -83,10 +65,10 @@
         <CheckBox Content="Include audio"
                   IsChecked="{Binding IncludeAudio, Mode=TwoWay}"
                   IsEnabled="{Binding SourceHasAudio}" />
-        <ComboBox HorizontalAlignment="Stretch"
-                  Header="Audio bitrate (kbps)"
-                  ItemsSource="{Binding AudioBitrateOptions}"
-                  SelectedItem="{Binding AudioBitrateKbps, Mode=TwoWay}"
+        <ComboBox Header="Audio bitrate (kbps)" IsEditable="True"
+                  HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding AudioBitrateField.Options}"
+                  Text="{Binding AudioBitrateField.Text, Mode=TwoWay}"
                   IsEnabled="{Binding CanEditAudioBitrate}" />
     </StackPanel>
 </UserControl>

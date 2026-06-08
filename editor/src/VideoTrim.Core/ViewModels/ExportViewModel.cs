@@ -1,4 +1,3 @@
-using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using VideoTrim.Core.Models;
 using VideoTrim.Core.Services;
@@ -6,9 +5,9 @@ using VideoTrim.Core.Services;
 namespace VideoTrim.Core.ViewModels;
 
 /// <summary>
-/// View-model for the video export panel (US3 §7.3, US4 §7.4, US5 §7.5). Owns the
-/// <see cref="ExportSettings"/> the user is editing, the source-aware dropdown options, and the
-/// live target-size feasibility check.
+/// View-model for the video export panel (US3 §7.3, US4 §7.4, US5 §7.5). Each numeric input is an
+/// editable combo field (presets + free typing); resolution/fps default to the source value and
+/// expose a "Same as source" reset. Owns the live target-size feasibility check.
 /// </summary>
 public sealed partial class ExportViewModel : ObservableObject
 {
@@ -18,41 +17,46 @@ public sealed partial class ExportViewModel : ObservableObject
     public ExportViewModel(ITargetSizeCalculator calculator)
     {
         _calculator = calculator;
-        ResolutionOptions = new ObservableCollection<ResolutionOption>(ExportOptionCatalog.ResolutionsFor(null));
-        FpsOptions = new ObservableCollection<FpsOption>(ExportOptionCatalog.VideoFpsFor(null));
-        SelectedResolution = ResolutionOptions[0];
-        SelectedFps = FpsOptions[0];
+
+        HeightField = new ComboFieldViewModel(
+            ExportOptionCatalog.SameAsSource,
+            v => ((int)Math.Round(v)).ToString(System.Globalization.CultureInfo.InvariantCulture));
+        FpsField = new ComboFieldViewModel(ExportOptionCatalog.SameAsSource);
+        BitrateField = new ComboFieldViewModel();
+        TargetSizeField = new ComboFieldViewModel();
+        AudioBitrateField = new ComboFieldViewModel();
+
+        HeightField.SetOptions(ExportOptionCatalog.HeightOptions(null));
+        FpsField.SetOptions(ExportOptionCatalog.VideoFpsOptions(null));
+        BitrateField.SetOptions(ExportOptionCatalog.VideoBitrateOptions());
+        TargetSizeField.SetOptions(ExportOptionCatalog.TargetSizeOptions());
+        AudioBitrateField.SetOptions(ExportOptionCatalog.AudioBitrateOptions());
+
+        HeightField.Text = ExportOptionCatalog.SameAsSource;
+        FpsField.Text = ExportOptionCatalog.SameAsSource;
+        BitrateField.Text = "2500";
+        TargetSizeField.Text = "10 MB";
+        AudioBitrateField.Text = "128";
+
+        TargetSizeField.ValueChanged += (_, _) => RecomputeFeasibility();
+        AudioBitrateField.ValueChanged += (_, _) => RecomputeFeasibility();
     }
 
-    public ObservableCollection<ResolutionOption> ResolutionOptions { get; }
-    public ObservableCollection<FpsOption> FpsOptions { get; }
+    public ComboFieldViewModel HeightField { get; }
+    public ComboFieldViewModel FpsField { get; }
+    public ComboFieldViewModel BitrateField { get; }
+    public ComboFieldViewModel TargetSizeField { get; }
+    public ComboFieldViewModel AudioBitrateField { get; }
 
     public IReadOnlyList<OutputFormat> FormatOptions { get; } = new[]
     {
         OutputFormat.Mp4, OutputFormat.Mov, OutputFormat.Mkv, OutputFormat.Webm, OutputFormat.Gif,
     };
 
-    public IReadOnlyList<int> AudioBitrateOptions { get; } = new[] { 320, 256, 192, 128, 96, 64 };
-    public IReadOnlyList<SizeUnit> SizeUnitOptions { get; } = new[] { SizeUnit.MiB, SizeUnit.KiB };
-
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsGif))]
     [NotifyPropertyChangedFor(nameof(IsVideo))]
     private OutputFormat _format = OutputFormat.Mp4;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsCustomResolution))]
-    private ResolutionOption? _selectedResolution;
-
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(IsCustomFps))]
-    private FpsOption? _selectedFps;
-
-    /// <summary>Free-form height used when the "Custom…" resolution option is selected.</summary>
-    [ObservableProperty] private int _customHeight = 1080;
-
-    /// <summary>Free-form frame rate used when the "Custom…" fps option is selected.</summary>
-    [ObservableProperty] private double _customFps = 60;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsQualityMode))]
@@ -61,15 +65,10 @@ public sealed partial class ExportViewModel : ObservableObject
     private BitrateMode _mode = BitrateMode.Quality;
 
     [ObservableProperty] private int _qualityCrf = 23;
-    [ObservableProperty] private int? _videoBitrateKbps = 2500;
-    [ObservableProperty] private double _targetSizeValue = 10;
-    [ObservableProperty] private SizeUnit _targetSizeUnit = SizeUnit.MiB;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanEditAudioBitrate))]
     private bool _includeAudio = true;
-
-    [ObservableProperty] private int _audioBitrateKbps = 128;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanEditAudioBitrate))]
@@ -84,14 +83,7 @@ public sealed partial class ExportViewModel : ObservableObject
     public bool IsGif => Format == OutputFormat.Gif;
     public bool IsVideo => Format != OutputFormat.Gif;
 
-    /// <summary>True when the "Custom…" resolution option is selected (reveals the height input).</summary>
-    public bool IsCustomResolution => SelectedResolution?.IsCustom ?? false;
-
-    /// <summary>True when the "Custom…" fps option is selected (reveals the fps input).</summary>
-    public bool IsCustomFps => SelectedFps?.IsCustom ?? false;
-
     // Settable so RadioButton.IsChecked can bind TwoWay directly (no enum converter needed).
-    // Setting one to true selects that mode; the false push-back from the radio group is ignored.
     public bool IsQualityMode
     {
         get => Mode == BitrateMode.Quality;
@@ -124,10 +116,16 @@ public sealed partial class ExportViewModel : ObservableObject
         if (!SourceHasAudio)
             IncludeAudio = false;
 
-        ReplaceOptions(ResolutionOptions, ExportOptionCatalog.ResolutionsFor(source));
-        ReplaceOptions(FpsOptions, ExportOptionCatalog.VideoFpsFor(source));
-        SelectedResolution = ResolutionOptions[0];
-        SelectedFps = FpsOptions[0];
+        HeightField.SetOptions(ExportOptionCatalog.HeightOptions(source));
+        FpsField.SetOptions(ExportOptionCatalog.VideoFpsOptions(source));
+
+        if (source is not null)
+        {
+            // Populate the boxes with the source values (numeric "same as source" default).
+            HeightField.ApplySourceValue(source.Height);
+            FpsField.ApplySourceValue(source.FrameRate);
+        }
+
         RecomputeFeasibility();
     }
 
@@ -137,16 +135,18 @@ public sealed partial class ExportViewModel : ObservableObject
         RecomputeFeasibility();
     }
 
-    public long TargetSizeBytes => SizeUnits.ToBytes(TargetSizeValue, TargetSizeUnit);
+    public int AudioBitrateKbps => FieldParsing.ParseBitrateKbps(AudioBitrateField.Text) ?? 128;
+
+    public long TargetSizeBytes => FieldParsing.ParseSizeBytes(TargetSizeField.Text) ?? 0;
 
     public ExportSettings ToSettings() => new()
     {
         Format = Format,
-        TargetHeight = ResolveTargetHeight(),
-        TargetFps = ResolveTargetFps(),
+        TargetHeight = FieldParsing.ParseHeight(HeightField.Text, _source?.Height),
+        TargetFps = FieldParsing.ParseFps(FpsField.Text, _source?.FrameRate),
         Mode = Mode,
         QualityCrf = QualityCrf,
-        VideoBitrateKbps = VideoBitrateKbps,
+        VideoBitrateKbps = FieldParsing.ParseBitrateKbps(BitrateField.Text),
         TargetSizeBytes = Mode == BitrateMode.TargetSize ? TargetSizeBytes : null,
         Audio = new AudioSettings
         {
@@ -154,17 +154,6 @@ public sealed partial class ExportViewModel : ObservableObject
             AudioBitrateKbps = AudioBitrateKbps,
         },
     };
-
-    private int? ResolveTargetHeight() => SelectedResolution?.IsCustom == true
-        ? ExportOptionCatalog.NormalizeHeight(CustomHeight)
-        : SelectedResolution?.Height;
-
-    private double? ResolveTargetFps()
-    {
-        if (SelectedFps?.IsCustom == true)
-            return CustomFps > 0 ? CustomFps : null;
-        return SelectedFps?.Fps;
-    }
 
     public void RecomputeFeasibility()
     {
@@ -184,16 +173,6 @@ public sealed partial class ExportViewModel : ObservableObject
     }
 
     partial void OnModeChanged(BitrateMode value) => RecomputeFeasibility();
-    partial void OnTargetSizeValueChanged(double value) => RecomputeFeasibility();
-    partial void OnTargetSizeUnitChanged(SizeUnit value) => RecomputeFeasibility();
     partial void OnIncludeAudioChanged(bool value) => RecomputeFeasibility();
-    partial void OnAudioBitrateKbpsChanged(int value) => RecomputeFeasibility();
     partial void OnFormatChanged(OutputFormat value) => ExportConstraintsChanged?.Invoke(this, EventArgs.Empty);
-
-    private static void ReplaceOptions<T>(ObservableCollection<T> target, IReadOnlyList<T> items)
-    {
-        target.Clear();
-        foreach (var item in items)
-            target.Add(item);
-    }
 }

@@ -1,15 +1,21 @@
 # Bundled FFmpeg binaries
 
-Place the LGPL static builds of `ffmpeg.exe` and `ffprobe.exe` in this folder. They are copied
-next to the application on build (`Assets/ffmpeg/`) and located at runtime by `FfmpegLocator`
-(see `App.xaml.cs`). The app verifies they exist at startup and fails loudly if missing (§12, §14).
+Place `ffmpeg.exe` and `ffprobe.exe` in this folder. They are copied next to the application on
+build (`Assets/ffmpeg/`) and located at runtime by `FfmpegLocator` (see `App.xaml.cs`). The app
+verifies they exist at startup and fails loudly if missing (§12, §14).
 
-Required encoders for the chosen builds (§3.1):
-- `libx264` (MP4/MOV/MKV video) and `aac`
-- `libvpx-vp9` (WebM video) and `libopus`
-- `gif` (palettegen/paletteuse)
+## Use a GPL build (required for libx264)
 
-Recommended source: https://www.gyan.dev/ffmpeg/builds/ or https://github.com/BtbN/FFmpeg-Builds
-(use an LGPL build; a GPL build with `libx265` would require revisiting the distribution license).
+The app's default video export uses **`libx264`** for MP4/MOV/MKV (eng-doc §10.0). `libx264` is
+**GPL-licensed and is NOT included in LGPL FFmpeg builds** — an LGPL build raises
+`Unknown encoder 'libx264'` at export time. You must therefore bundle a **GPL** build. See
+`decisions.md` (decision 25) for the licensing note: the eng-doc's "LGPL build + libx264" assumption
+is internally inconsistent, and a GPL build is required for the documented commands to work.
 
-These large binaries are intentionally **not** committed to the repository.
+Required encoders (verify with `ffmpeg -encoders`): `libx264`, `libvpx-vp9`, `aac`, `libopus`, `gif`.
+
+Recommended source: https://github.com/BtbN/FFmpeg-Builds — use a **gpl** build, e.g.
+`ffmpeg-master-latest-win64-gpl.zip` (static: just `ffmpeg.exe` + `ffprobe.exe`, no extra DLLs).
+The `gyan.dev` "full"/"essentials" builds are also GPL and work.
+
+These large binaries are intentionally **not** committed to the repository (see `.gitignore`).

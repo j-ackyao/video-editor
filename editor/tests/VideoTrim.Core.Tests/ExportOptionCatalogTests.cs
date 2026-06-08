@@ -7,39 +7,45 @@ public sealed class ExportOptionCatalogTests
     [Fact]
     public void VideoFps_HighRefresh_OfferedForHighFpsSource()
     {
-        var opts = ExportOptionCatalog.VideoFpsFor(TestData.Media(fps: 144));
-        var values = opts.Where(o => o.Fps.HasValue).Select(o => o.Fps!.Value).ToList();
-        Assert.Contains(144d, values);
-        Assert.Contains(120d, values);
+        var opts = ExportOptionCatalog.VideoFpsOptions(TestData.Media(fps: 144));
+        Assert.Contains("144", opts);
+        Assert.Contains("120", opts);
     }
 
     [Fact]
     public void VideoFps_DoesNotOfferAboveSourceByDefault()
     {
-        var opts = ExportOptionCatalog.VideoFpsFor(TestData.Media(fps: 30));
-        var values = opts.Where(o => o.Fps.HasValue).Select(o => o.Fps!.Value).ToList();
-        Assert.DoesNotContain(144d, values);
-        Assert.DoesNotContain(60d, values);
-        Assert.Contains(30d, values);
+        var opts = ExportOptionCatalog.VideoFpsOptions(TestData.Media(fps: 30));
+        Assert.DoesNotContain("144", opts);
+        Assert.DoesNotContain("60", opts);
+        Assert.Contains("30", opts);
     }
 
     [Fact]
-    public void EveryList_EndsWithCustomSentinel()
+    public void HeightAndFps_StartWithSameAsSource()
     {
         var src = TestData.Media(fps: 60, height: 1080);
-        Assert.True(ExportOptionCatalog.ResolutionsFor(src).Last().IsCustom);
-        Assert.True(ExportOptionCatalog.VideoFpsFor(src).Last().IsCustom);
-        Assert.True(ExportOptionCatalog.GifFpsFor(src).Last().IsCustom);
+        Assert.Equal(ExportOptionCatalog.SameAsSource, ExportOptionCatalog.HeightOptions(src)[0]);
+        Assert.Equal(ExportOptionCatalog.SameAsSource, ExportOptionCatalog.VideoFpsOptions(src)[0]);
+        Assert.Equal(ExportOptionCatalog.SameAsSource, ExportOptionCatalog.GifFpsOptions(src)[0]);
     }
 
     [Fact]
     public void Resolutions_CapAtSourceHeight()
     {
-        var opts = ExportOptionCatalog.ResolutionsFor(TestData.Media(height: 720));
-        var heights = opts.Where(o => o.Height.HasValue).Select(o => o.Height!.Value).ToList();
-        Assert.Contains(720, heights);
-        Assert.DoesNotContain(1080, heights);
-        Assert.DoesNotContain(2160, heights);
+        var opts = ExportOptionCatalog.HeightOptions(TestData.Media(height: 720));
+        Assert.Contains("720", opts);
+        Assert.DoesNotContain("1080", opts);
+        Assert.DoesNotContain("2160", opts);
+    }
+
+    [Fact]
+    public void BitrateAndSizePresets_AreOffered()
+    {
+        Assert.Contains("2500", ExportOptionCatalog.VideoBitrateOptions());
+        Assert.Contains("10 MB", ExportOptionCatalog.TargetSizeOptions());
+        Assert.Contains("5 MB", ExportOptionCatalog.TargetSizeOptions());
+        Assert.Contains("128", ExportOptionCatalog.AudioBitrateOptions());
     }
 
     [Theory]

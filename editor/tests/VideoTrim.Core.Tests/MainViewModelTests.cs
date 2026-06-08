@@ -89,8 +89,7 @@ public sealed class MainViewModelTests
         var vm = await CreateLoadedAsync(TestData.Media(fps: 30, durationSeconds: 60));
         vm.Export.Format = OutputFormat.Mp4;
         vm.Export.Mode = BitrateMode.TargetSize;
-        vm.Export.TargetSizeUnit = SizeUnit.KiB;
-        vm.Export.TargetSizeValue = 50; // 50 KiB over 60s -> infeasible
+        vm.Export.TargetSizeField.Text = "50 KB"; // 50 KiB over 60s -> infeasible
 
         Assert.False(vm.Export.IsTargetSizeFeasible);
         Assert.False(vm.ExportCommand.CanExecute(null));

@@ -14,27 +14,17 @@
     </UserControl.Resources>
 
     <StackPanel Spacing="10">
-        <TextBlock Text="Resolution" Style="{ThemeResource CaptionTextBlockStyle}" />
-        <ComboBox HorizontalAlignment="Stretch"
-                  ItemsSource="{Binding ResolutionOptions}"
-                  SelectedItem="{Binding SelectedResolution, Mode=TwoWay}"
-                  DisplayMemberPath="Label" />
-        <controls:NumberBox Header="Custom height (px)"
-                            Value="{Binding CustomHeight, Mode=TwoWay}"
-                            SpinButtonPlacementMode="Compact" Minimum="2" Maximum="4320"
-                            Visibility="{Binding IsCustomResolution, Converter={StaticResource BoolToVis}}" />
+        <ComboBox Header="Resolution (height, px)" IsEditable="True"
+                  HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding HeightField.Options}"
+                  Text="{Binding HeightField.Text, Mode=TwoWay}" />
 
-        <TextBlock Text="Frame rate" Style="{ThemeResource CaptionTextBlockStyle}" />
-        <ComboBox HorizontalAlignment="Stretch"
-                  ItemsSource="{Binding FpsOptions}"
-                  SelectedItem="{Binding SelectedFps, Mode=TwoWay}"
-                  DisplayMemberPath="Label" />
-        <controls:NumberBox Header="Custom fps"
-                            Value="{Binding CustomFps, Mode=TwoWay}"
-                            SpinButtonPlacementMode="Compact" Minimum="1" Maximum="60"
-                            Visibility="{Binding IsCustomFps, Converter={StaticResource BoolToVis}}" />
+        <ComboBox Header="Frame rate (fps)" IsEditable="True"
+                  HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding FpsField.Options}"
+                  Text="{Binding FpsField.Text, Mode=TwoWay}" />
 
-        <TextBlock Text="More compression  ⟷  Better quality (colors)" Style="{ThemeResource CaptionTextBlockStyle}" Margin="0,6,0,0" />
+        <TextBlock Text="Smaller  ⟷  More colors" Style="{ThemeResource CaptionTextBlockStyle}" Margin="0,6,0,0" />
         <Slider Minimum="2" Maximum="256" StepFrequency="1" Value="{Binding MaxColors, Mode=TwoWay}" />
 
         <ComboBox HorizontalAlignment="Stretch"
@@ -45,19 +35,10 @@
         <CheckBox Content="Limit to a target size"
                   IsChecked="{Binding UseTargetSize, Mode=TwoWay}"
                   Margin="0,6,0,0" />
-        <Grid ColumnSpacing="6">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <controls:NumberBox Grid.Column="0"
-                                Value="{Binding TargetSizeValue, Mode=TwoWay}"
-                                SpinButtonPlacementMode="Compact" Minimum="0.01"
-                                IsEnabled="{Binding CanEditTargetSize}" />
-            <ComboBox Grid.Column="1"
-                      ItemsSource="{Binding SizeUnitOptions}"
-                      SelectedItem="{Binding TargetSizeUnit, Mode=TwoWay}"
-                      IsEnabled="{Binding CanEditTargetSize}" />
-        </Grid>
+        <ComboBox Header="Target size" IsEditable="True"
+                  HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding TargetSizeField.Options}"
+                  Text="{Binding TargetSizeField.Text, Mode=TwoWay}"
+                  IsEnabled="{Binding CanEditTargetSize}" />
     </StackPanel>
 </UserControl>

@@ -149,16 +149,62 @@ panel shows per format, removing the duplicated controls and the confusing secon
 ## 20. Custom resolution and fps entry
 **Issue (user request).** Keep the preset dropdowns but also allow typing an arbitrary
 resolution/fps.
-**Decision.** Added a "Custom…" sentinel entry to the resolution and fps dropdowns
-(`ResolutionOption.IsCustom` / `FpsOption.IsCustom`). Selecting it reveals a `NumberBox`
-(`CustomHeight` / `CustomFps`). Custom height is normalized to an even, positive value
-(`ExportOptionCatalog.NormalizeHeight`) because yuv420p requires even dimensions. Applied to both the
-video and GIF panels.
+**Decision.** _(Superseded by decision 22 — the "Custom…"/NumberBox approach below was replaced by a
+single editable combo per field.)_ Originally added a "Custom…" sentinel entry that revealed a
+`NumberBox`. Custom height is normalized to an even, positive value
+(`ExportOptionCatalog.NormalizeHeight`) because yuv420p requires even dimensions — this rule carried
+over into the editable-combo design.
 
 ## 21. High-refresh fps options (120, 144)
 **Issue (user request).** Offer 120 and 144 fps.
 **Decision.** Added 144 and 120 to the standard video-fps list. They follow the existing §12 rule —
 only presets ≤ source fps are listed, so they appear for high-fps sources (e.g. 120/144 fps capture)
-rather than fabricating frames by default. The new "Custom…" fps field (decision 20) is the explicit
+rather than fabricating frames by default. The editable combo field (decision 22) is the explicit
 escape hatch for any other value, including deliberate up-sampling.
+
+## 22. Editable combo fields replace number boxes + custom dropdowns
+**Issue (user request).** Remove the up/down spinner on numeric inputs; merge the preset dropdown and
+the free-typing box into one control (click → see presets, but can also type); make resolution/fps
+boxes always numeric and pre-filled with the source value on load, keeping a "Same as source" entry
+at the top that re-fills the box with the source value when chosen. Extend this to bitrate, target
+size and audio bitrate with popular presets.
+**Decision.** Replaced every `NumberBox` (and the separate preset/unit dropdowns and the earlier
+"Custom…" option from decision 20) with an **editable `ComboBox`** (`IsEditable="True"`) per field —
+this removes the spinner entirely and unifies presets + typing in one box. Introduced a reusable
+`ComboFieldViewModel` (Options + free-text `Text` + optional "Same as source" substitution) and a
+pure, unit-tested `FieldParsing` helper that turns the text into a concrete value, tolerating units
+and stray characters (`"2500k"`, `"10 MB"`, `"59.94"`). Resolution/fps fields are seeded with the
+source value on load and treat "value == source" as "same as source" (null → no scale/fps filter).
+Presets added: video bitrate {8000, 5000, 2500, 1000, 500} kbps; target size {25, 10, 5, 2, 1 MB,
+500 KB}; audio bitrate {320…64} kbps. The separate MB/KB unit dropdown was removed — the unit is now
+typed inline (e.g. "10 MB", default bare number = MiB, per §9.1).
+
+## 23. GIF fps default kept at 15 (not source)
+**Issue.** The "show the source value on load" rule (decision 22) conflicts with GIF, where a 30/60
+fps default would produce very large GIFs.
+**Decision.** For the GIF panel the height box is still seeded with the source value, but the fps box
+defaults to **15** (a GIF-appropriate value), while still offering "Same as source" in the dropdown
+(which resolves to the source fps). Video export is unaffected and follows decision 22 fully.
+
+## 25. FFmpeg must be a GPL build (eng-doc "LGPL + libx264" is inconsistent)
+**Issue (user-reported).** A default MP4 export failed with `Unknown encoder 'libx264'` →
+`Encoder not found`. The bundled binary was an **LGPL** FFmpeg build (matching §3.1's "bundle an LGPL
+build" assumption), but the same eng-doc requires the `libx264` encoder (§3.1, §10.0). `libx264` is
+**GPL-licensed and is not present in LGPL FFmpeg builds**, so those two requirements are mutually
+exclusive — an internal inconsistency in the eng-doc.
+**Decision.** Bundle a **GPL** FFmpeg build, which includes all encoders the app uses (`libx264`,
+`libvpx-vp9`, `aac`, `libopus`, `gif`). This makes the §10 commands work unchanged. A static GPL
+build is used so only `ffmpeg.exe` + `ffprobe.exe` are needed (no shared `av*` DLLs). Verified
+end-to-end: a 2472×1620/30 fps clip trims and re-encodes via the exact default command
+(`libx264 -crf 23 -preset medium … -movflags +faststart`) with exit code 0.
+**Licensing consequence (flagging, per §3.1's own caveat).** Shipping a GPL `ffmpeg.exe` means the
+distributed FFmpeg binary is under GPLv3; the app invokes it as a separate process (no static
+linking), but anyone redistributing the app must comply with the GPL for that binary. The
+alternative — staying LGPL by switching H.264 to `libopenh264` — was rejected because it changes the
+quality model (`-crf`/`-preset` don't map to OpenH264) and lowers quality, diverging from the
+documented §10 commands. If LGPL distribution is a hard requirement, revisit by replacing the H.264
+codec mapping in `FormatCatalog`/§10.0 with `libopenh264` (or hardware encoders) behind the existing
+`IEncodingService` seam. The binaries themselves remain uncommitted (decision 15 / `.gitignore`).
+
+
 

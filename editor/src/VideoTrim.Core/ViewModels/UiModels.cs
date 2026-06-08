@@ -1,3 +1,4 @@
+using System.Globalization;
 using VideoTrim.Core.Models;
 
 namespace VideoTrim.Core.ViewModels;
@@ -11,99 +12,69 @@ public enum InfoSeverity
     Error
 }
 
-/// <summary>Binary size units for target-size inputs (§9.1 decision: binary MiB/KiB by default).</summary>
-public enum SizeUnit
-{
-    KiB,
-    MiB
-}
-
-public static class SizeUnits
-{
-    public static long ToBytes(double value, SizeUnit unit)
-    {
-        double factor = unit switch
-        {
-            SizeUnit.KiB => 1024d,
-            SizeUnit.MiB => 1024d * 1024d,
-            _ => 1d,
-        };
-        double bytes = value * factor;
-        return bytes <= 0 ? 0 : (long)Math.Round(bytes);
-    }
-}
-
 /// <summary>
-/// A resolution choice in the dropdowns. <c>Height</c> null with <c>IsCustom</c> false = "Same as
-/// source" (§7.3); <c>IsCustom</c> true reveals a numeric input for an arbitrary height.
+/// Builds the editable-combo preset lists (§7.3, §7.6). Each list is a set of display strings the
+/// user can pick or type over; "Same as source" is a sentinel handled by <see cref="ComboFieldViewModel"/>.
 /// </summary>
-public sealed record ResolutionOption(string Label, int? Height, bool IsCustom = false);
-
-/// <summary>
-/// An fps choice in the dropdowns. <c>Fps</c> null with <c>IsCustom</c> false = "Same as source"
-/// (§7.3); <c>IsCustom</c> true reveals a numeric input for an arbitrary frame rate.
-/// </summary>
-public sealed record FpsOption(string Label, double? Fps, bool IsCustom = false);
-
-/// <summary>Builds the standard, source-aware dropdown option lists (§7.3, §7.6).</summary>
 public static class ExportOptionCatalog
 {
-    /// <summary>Shared "Custom…" sentinels appended to the dropdowns to enable free-form entry.</summary>
-    public static readonly ResolutionOption CustomResolution = new("Custom…", null, IsCustom: true);
-    public static readonly FpsOption CustomFps = new("Custom…", null, IsCustom: true);
+    public const string SameAsSource = "Same as source";
 
-    private static readonly (string Label, int Height)[] StandardHeights =
-    {
-        ("2160p", 2160), ("1440p", 1440), ("1080p", 1080),
-        ("720p", 720), ("480p", 480), ("360p", 360),
-    };
+    private static readonly int[] StandardHeights = { 2160, 1440, 1080, 720, 480, 360 };
 
     // Includes high-refresh options (144, 120) for high-fps sources, per UX feedback.
     private static readonly double[] StandardVideoFps = { 144, 120, 60, 30, 24, 15 };
     private static readonly double[] StandardGifFps = { 24, 20, 15, 12, 10, 8 };
 
-    /// <summary>Resolutions ≤ source height plus "Same as source" and "Custom…" (§12).</summary>
-    public static IReadOnlyList<ResolutionOption> ResolutionsFor(MediaInfo? source)
+    /// <summary>Heights ≤ source (so we don't upscale by default, §12), preceded by "Same as source".</summary>
+    public static IReadOnlyList<string> HeightOptions(MediaInfo? source)
     {
-        var list = new List<ResolutionOption> { new("Same as source", null) };
+        var list = new List<string> { SameAsSource };
         int srcHeight = source?.Height ?? int.MaxValue;
-        foreach (var (label, h) in StandardHeights)
+        foreach (int h in StandardHeights)
         {
             if (h <= srcHeight)
-                list.Add(new ResolutionOption(label, h));
+                list.Add(h.ToString(CultureInfo.InvariantCulture));
         }
-        list.Add(CustomResolution);
         return list;
     }
 
-    /// <summary>Frame rates ≤ source fps plus "Same as source" and "Custom…" (don't fabricate by default, §12).</summary>
-    public static IReadOnlyList<FpsOption> VideoFpsFor(MediaInfo? source)
+    /// <summary>Frame rates ≤ source (don't fabricate frames by default, §12), preceded by "Same as source".</summary>
+    public static IReadOnlyList<string> VideoFpsOptions(MediaInfo? source)
     {
-        var list = new List<FpsOption> { new("Same as source", null) };
+        var list = new List<string> { SameAsSource };
         double srcFps = source?.FrameRate ?? double.MaxValue;
         foreach (double f in StandardVideoFps)
         {
             if (f <= srcFps + 0.01)
-                list.Add(new FpsOption($"{f:0.##} fps", f));
+                list.Add(f.ToString("0.###", CultureInfo.InvariantCulture));
         }
-        list.Add(CustomFps);
         return list;
     }
 
-    public static IReadOnlyList<FpsOption> GifFpsFor(MediaInfo? source)
+    public static IReadOnlyList<string> GifFpsOptions(MediaInfo? source)
     {
-        var list = new List<FpsOption>();
+        var list = new List<string> { SameAsSource };
         double srcFps = source?.FrameRate ?? double.MaxValue;
         foreach (double f in StandardGifFps)
         {
             if (f <= srcFps + 0.01)
-                list.Add(new FpsOption($"{f:0.##} fps", f));
+                list.Add(f.ToString("0.###", CultureInfo.InvariantCulture));
         }
-        if (list.Count == 0)
-            list.Add(new FpsOption($"{srcFps:0.##} fps", srcFps));
-        list.Add(CustomFps);
         return list;
     }
+
+    /// <summary>Popular video bitrate presets (kbps).</summary>
+    public static IReadOnlyList<string> VideoBitrateOptions() =>
+        new[] { "8000", "5000", "2500", "1000", "500" };
+
+    /// <summary>Popular target-size presets (with units).</summary>
+    public static IReadOnlyList<string> TargetSizeOptions() =>
+        new[] { "25 MB", "10 MB", "5 MB", "2 MB", "1 MB", "500 KB" };
+
+    /// <summary>Audio bitrate presets (kbps).</summary>
+    public static IReadOnlyList<string> AudioBitrateOptions() =>
+        new[] { "320", "256", "192", "128", "96", "64" };
 
     /// <summary>Forces an even, positive height (yuv420p requires even dimensions).</summary>
     public static int? NormalizeHeight(int? height)
