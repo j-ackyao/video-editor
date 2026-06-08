@@ -32,12 +32,6 @@ public sealed partial class ExportViewModel : ObservableObject
         TargetSizeField.SetOptions(ExportOptionCatalog.TargetSizeOptions());
         AudioBitrateField.SetOptions(ExportOptionCatalog.AudioBitrateOptions());
 
-        HeightField.Text = ExportOptionCatalog.SameAsSource;
-        FpsField.Text = ExportOptionCatalog.SameAsSource;
-        BitrateField.Text = "2500";
-        TargetSizeField.Text = "10 MB";
-        AudioBitrateField.Text = "128";
-
         TargetSizeField.ValueChanged += (_, _) => RecomputeFeasibility();
         AudioBitrateField.ValueChanged += (_, _) => RecomputeFeasibility();
     }
@@ -65,6 +59,14 @@ public sealed partial class ExportViewModel : ObservableObject
     private BitrateMode _mode = BitrateMode.Quality;
 
     [ObservableProperty] private int _qualityCrf = 23;
+
+    /// <summary>
+    /// Lowest CRF the UI allows. CRF 0 puts x264 into <b>lossless</b> mode, which it tags as the
+    /// "High 4:4:4 Predictive" profile — Windows Media Foundation (the preview player) can't decode
+    /// that and shows a black frame. CRF 1 is near-lossless and uses the normal High profile.
+    /// </summary>
+    public const int MinCrf = 1;
+    public const int MaxCrf = 51;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanEditAudioBitrate))]
@@ -145,7 +147,7 @@ public sealed partial class ExportViewModel : ObservableObject
         TargetHeight = FieldParsing.ParseHeight(HeightField.Text, _source?.Height),
         TargetFps = FieldParsing.ParseFps(FpsField.Text, _source?.FrameRate),
         Mode = Mode,
-        QualityCrf = QualityCrf,
+        QualityCrf = Math.Clamp(QualityCrf, MinCrf, MaxCrf),
         VideoBitrateKbps = FieldParsing.ParseBitrateKbps(BitrateField.Text),
         TargetSizeBytes = Mode == BitrateMode.TargetSize ? TargetSizeBytes : null,
         Audio = new AudioSettings

@@ -38,7 +38,7 @@
         <!-- Quality slider -->
         <StackPanel Visibility="{Binding IsQualityMode, Converter={StaticResource BoolToVis}}" Spacing="2">
             <TextBlock Text="Better  ⟷  Smaller" Style="{ThemeResource CaptionTextBlockStyle}" />
-            <Slider Minimum="0" Maximum="51" Value="{Binding QualityCrf, Mode=TwoWay}" />
+            <Slider Minimum="1" Maximum="51" Value="{Binding QualityCrf, Mode=TwoWay}" />
         </StackPanel>
 
         <!-- Bitrate -->

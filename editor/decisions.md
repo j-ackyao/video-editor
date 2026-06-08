@@ -206,5 +206,19 @@ documented §10 commands. If LGPL distribution is a hard requirement, revisit by
 codec mapping in `FormatCatalog`/§10.0 with `libopenh264` (or hardware encoders) behind the existing
 `IEncodingService` seam. The binaries themselves remain uncommitted (decision 15 / `.gitignore`).
 
+## 26. Quality slider floored at CRF 1 (CRF 0 = lossless = black preview)
+**Issue (user-reported).** Dragging the quality slider to the highest-quality end (smallest value,
+CRF 0) produced a video that plays as black. Reproduced and confirmed via `ffprobe`: at **CRF 0**
+x264 enters **lossless** mode and tags the stream as the **"High 4:4:4 Predictive"** profile (even
+with `-pix_fmt yuv420p`). Windows Media Foundation — the decoder behind `MediaPlayerElement` and many
+players — does not support that profile, so it renders black. CRF 1+ uses the normal **High** profile
+(verified: CRF 1 → "High", yuv420p) and plays correctly.
+**Decision.** Disallow CRF 0. The quality slider minimum is now **1** (`ExportPanel.xaml`), and
+`ExportViewModel.ToSettings()` defensively clamps `QualityCrf` to `[ExportViewModel.MinCrf=1,
+MaxCrf=51]` so no code path can request lossless. CRF 1 is near-lossless and universally playable, so
+the "highest quality" intent is preserved. (The eng-doc §7.3 doesn't pin the CRF range; 0–51 is the
+raw x264 range, but 0 is unsafe for an app whose job is to produce a playable file.)
+
+
 
 

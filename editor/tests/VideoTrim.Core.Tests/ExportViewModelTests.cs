@@ -111,4 +111,16 @@ public sealed class ExportViewModelTests
         Assert.False(vm.IsTargetSizeFeasible);
         Assert.True(vm.BlocksExport);
     }
+
+    [Fact]
+    public void QualityCrf_IsClampedAwayFromLosslessZero()
+    {
+        var vm = Create();
+        vm.QualityCrf = 0;                 // lossless / High 4:4:4 → black in Media Foundation
+        Assert.Equal(ExportViewModel.MinCrf, vm.ToSettings().QualityCrf);
+        Assert.True(vm.ToSettings().QualityCrf >= 1);
+
+        vm.QualityCrf = 23;
+        Assert.Equal(23, vm.ToSettings().QualityCrf);
+    }
 }
