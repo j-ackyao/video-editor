@@ -19,11 +19,15 @@
         <!-- Editable combos: pick a preset or type your own value. -->
         <ComboBox Header="Resolution (height, px)" IsEditable="True"
                   HorizontalAlignment="Stretch"
+                  Tag="{Binding HeightField}"
+                  SelectionChanged="OnSameAsSourceSelectionChanged"
                   ItemsSource="{Binding HeightField.Options}"
                   Text="{Binding HeightField.Text, Mode=TwoWay}" />
 
         <ComboBox Header="Frame rate (fps)" IsEditable="True"
                   HorizontalAlignment="Stretch"
+                  Tag="{Binding FpsField}"
+                  SelectionChanged="OnSameAsSourceSelectionChanged"
                   ItemsSource="{Binding FpsField.Options}"
                   Text="{Binding FpsField.Text, Mode=TwoWay}" />
 

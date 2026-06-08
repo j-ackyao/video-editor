@@ -219,6 +219,25 @@ MaxCrf=51]` so no code path can request lossless. CRF 1 is near-lossless and uni
 the "highest quality" intent is preserved. (The eng-doc §7.3 doesn't pin the CRF range; 0–51 is the
 raw x264 range, but 0 is unsafe for an app whose job is to produce a playable file.)
 
+## 27. Auto-scroll the export panel to the progress bar on export
+**Issue (user-reported).** The progress bar + Cancel button appear at the bottom of the (scrollable)
+export panel, below the fold, so the user couldn't see export was running without scrolling.
+**Decision.** `MainPage` watches `IsExporting`; when it flips true it scrolls the export
+`ScrollViewer` to the bottom (`ChangeView(null, ScrollableHeight, null)`), deferred at
+`DispatcherQueuePriority.Low` so the just-shown progress row is measured first. The progress UI is now
+fully visible the moment Export is clicked.
+
+## 28. "Same as source" combo shows the numeric source value when picked
+**Issue (user-reported).** Picking "Same as source" left the literal string "Same as source" in the
+box instead of the source number. The view-model already substitutes the value, but an **editable**
+`ComboBox` re-applies the selected item's text after selection, overriding it.
+**Decision.** A small code-behind handler (`ComboFieldHelper.ResolveSameAsSourceSelection`, wired via
+each field's `SelectionChanged` + a `Tag` pointing at its `ComboFieldViewModel`) detects selection of
+the sentinel, clears `SelectedItem`, and sets the box text to `ComboFieldViewModel.SourceValueText`
+(the formatted source value). The field therefore always shows a number; the VM-side substitution is
+kept as a defensive fallback.
+
+
 
 
 

@@ -62,7 +62,25 @@ public sealed partial class MainPage : UserControl
                 else
                     _player.Pause();
                 break;
+            case nameof(MainViewModel.IsExporting):
+                if (_vm.IsExporting)
+                    ScrollExportPanelToBottom();
+                break;
         }
+    }
+
+    /// <summary>
+    /// When an export starts the progress bar + Cancel button appear at the bottom of the export
+    /// panel; scroll the panel so they're fully visible without the user having to scroll manually.
+    /// </summary>
+    private void ScrollExportPanelToBottom()
+    {
+        // Defer so the newly-shown progress row is measured before we read ScrollableHeight.
+        DispatcherQueue.TryEnqueue(DispatcherQueuePriority.Low, () =>
+        {
+            ExportScroll.UpdateLayout();
+            ExportScroll.ChangeView(null, ExportScroll.ScrollableHeight, null);
+        });
     }
 
     private void UpdatePlayerSource()

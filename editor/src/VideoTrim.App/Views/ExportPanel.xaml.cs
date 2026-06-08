@@ -8,4 +8,7 @@ public sealed partial class ExportPanel : UserControl
     {
         InitializeComponent();
     }
+
+    private void OnSameAsSourceSelectionChanged(object sender, SelectionChangedEventArgs e)
+        => ComboFieldHelper.ResolveSameAsSourceSelection(sender);
 }

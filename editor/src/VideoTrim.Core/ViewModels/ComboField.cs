@@ -29,6 +29,9 @@ public sealed partial class ComboFieldViewModel : ObservableObject
     /// <summary>The label that means "use the source value", or null if this field has no such option.</summary>
     public string? SameAsSourceLabel { get; }
 
+    /// <summary>The formatted source value (e.g. "1080"), or null when no source has been applied.</summary>
+    public string? SourceValueText => _sourceValue is { } v ? _formatSource(v) : null;
+
     [ObservableProperty] private string _text = string.Empty;
 
     /// <summary>Raised whenever the effective value changes (used to re-validate target size).</summary>

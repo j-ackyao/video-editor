@@ -76,4 +76,14 @@ public sealed class FieldParsingTests
         field.Text = "1000";
         Assert.Equal(2, count);
     }
+
+    [Fact]
+    public void ComboField_SourceValueText_ReflectsAppliedSource()
+    {
+        var field = new ComboFieldViewModel(ExportOptionCatalog.SameAsSource,
+            v => ((int)v).ToString(System.Globalization.CultureInfo.InvariantCulture));
+        Assert.Null(field.SourceValueText);           // none applied yet
+        field.ApplySourceValue(720);
+        Assert.Equal("720", field.SourceValueText);   // used to display the numeric value on "Same as source"
+    }
 }
